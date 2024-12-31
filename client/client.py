@@ -2,15 +2,19 @@ import socket
 import struct
 import hashlib
 import random
+from client_backend import get_arg_parser, get_user_commands, exec_function
 
 HEADER = 64
 PORT = 5000
-HOST = socket.gethostbyname(socket.gethostname()) # Get the IP address of the local computer
+HOST = socket.gethostbyname(
+    socket.gethostname()
+)  # Get the IP address of the local computer
 ADDR = (HOST, PORT)
 
 # Global parameters (public, known to both parties)
 g = 999999999999999999  # Generator
 m = 1019  # Prime modulus
+
 
 def authenticate(conn):
     """Generate a private and public key."""
@@ -45,24 +49,42 @@ def authenticate(conn):
         return False
 
 
-def push_msg(msg):
+def push_msg(sock: socket, msg):
     message = msg.encode()
     msg_length = len(message)
     send_legnth = str(msg_length).encode()
-    send_legnth += b' ' * (HEADER - len(send_legnth)) # Added padded length to fit the header length
-    client.send(send_legnth)
-    client.send(message)
+    send_legnth += b" " * (
+        HEADER - len(send_legnth)
+    )  # Added padded length to fit the header length
 
-if __name__ == "__main__":
+    sock.send(send_legnth)
+    sock.send(message)
+
+
+def main():
+    parser = get_arg_parser()
+
+    args = None
+    authedOnce = False
+    i = 0
+
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client.connect(ADDR)
     connected = authenticate(client)
 
     while connected:
+        i += 1
+        args = get_user_commands(parser, args)
+        print(args)
+
         msg = input("$ ")
         if msg != "":
-            push_msg(msg)
-        
+            push_msg(client, msg)
         if msg == "quit" or KeyboardInterrupt:
             break
-        
+
+        # resp = exec_function(args)
+
+
+if __name__ == "__main__":
+    main()
