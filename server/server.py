@@ -61,26 +61,19 @@ def authenticate(conn):
     
 def handle_client(conn, addr):
     print(f"NEW CLIENT CONNECTION: {addr}")
-    try:
-        connected = authenticate(conn)
-
-        while connected:
-            try:
-                msg_length = conn.recv(HEADER).decode()
-                if not msg_length:
-                    break
-                msg_length = int(msg_length)
-                msg = conn.recv(msg_length).decode()
-                if msg.lower() == "quit":
-                    print(f"Client {addr} disconnected.")
-                    break
-                print(f"MESSAGE FROM {addr}: {msg}")
-            except Exception as e:
-                print(f"Error with client {addr}: {e}")
-                break
-    finally:
-        conn.close()
-        print(f"Connection with {addr} closed.")
+    connected = True
+    connected = authenticate(conn)
+    
+    while connected:
+        msg_length = conn.recv(HEADER).decode()
+        if not msg_length:
+            continue
+        msg_length = int(msg_length)
+        msg = conn.recv(msg_length).decode()
+        if msg == "quit":
+            connected = False
+        print(f"MESSAGE RECEIVED GRACEFULLY: {msg}")
+    conn.close()
 
 
 if __name__ == "__main__":
