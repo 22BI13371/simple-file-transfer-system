@@ -1,2 +1,2 @@
 # simple-file-transfer-system
-Implementation of a simple file trasnfer system for group project
+Implementation of a simple file transfer system for group project
