@@ -33,4 +33,10 @@ if __name__ == "__main__":
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(ADDR)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # Set to be reusable socket bc there is a TIME_WAIT before you can use the socket again
-    awake()
+    
+    try:
+        awake()
+    except KeyboardInterrupt:
+        print("!!!SHUTTING DOWN SERVER!!!")
+        server.close()
+        
