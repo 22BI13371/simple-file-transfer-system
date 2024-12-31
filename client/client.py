@@ -5,7 +5,7 @@ PORT = 5000
 HOST = socket.gethostbyname(socket.gethostname()) # Get the IP address of the local computer
 ADDR = (HOST, PORT)
 
-def push(msg):
+def push_msg(msg):
     message = msg.encode()
     msg_length = len(message)
     send_legnth = str(msg_length).encode()
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     while True:
         msg = input("$ ")
         if msg != "":
-            push(msg)
+            push_msg(msg)
         
         if msg == "quit":
             break

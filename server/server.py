@@ -8,6 +8,7 @@ ADDR = (HOST, PORT)
 
 def awake():
     print("THE SERVER IS AWAKENING...")
+    print("PRAISE TO THE OMNISSIAH")
     server.listen()
     while True:
         conn, addr = server.accept()
@@ -25,7 +26,7 @@ def handle_client(conn, addr):
         msg = conn.recv(msg_length).decode()
         if msg == "quit":
             connected = False
-        print(msg)
+        print(f"MESSAGE RECEIVED GRACEFULLY: {msg}")
     conn.close()
 
 if __name__ == "__main__":
