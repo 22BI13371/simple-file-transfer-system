@@ -3,6 +3,7 @@ import socket
 import subprocess
 import json
 import secrets
+import pprint
 
 import os, sys
 
@@ -38,9 +39,19 @@ def parse_command_json(command_json):
         "iv": None,
     }
 
-    client_args.update(json.load(command_json))
+    client_args.update(json.loads(command_json))
+    # print(client_args)
 
     client_args["cipherfunc"] = getattr(CipherLib, client_args["cipher"])
+    client_args["iv"] = _string_to_bytes(client_args["iv"])
+    client_args["function"] = eval(client_args["function"])
+
+    # printing client args
+    pp = pprint.PrettyPrinter(indent=4)
+    print("client args")
+    pp.pprint(client_args)
+
+    return client_args
 
 
 def receive_command(conn: socket, client_parser=None):
@@ -55,6 +66,7 @@ def receive_command(conn: socket, client_parser=None):
     print("recieve command debug:", command_json)
 
     client_args = parse_command_json(command_json)
+    print("client args debug:", client_args)
 
     server_resp = _string_to_bytes(
         json.dumps(
@@ -64,7 +76,7 @@ def receive_command(conn: socket, client_parser=None):
         )
     )
     send_msg(conn, server_resp)
-    print(client_args)
+    # print(client_args)
     return client_args
 
 
@@ -93,3 +105,41 @@ def get(conn: socket, args=None):
             )
         ),
     )
+
+
+def put(conn: socket, args=None):
+    # recv file from client and write to file
+    print("receiving file...")
+    client_data = json.loads(_bytes_to_string(recv_msg(conn)))
+
+    args["filename"] = os.path.join("server_files", args["filename"])
+
+    data = client_data["data"]
+    if data is None:
+        print("Problem: data received is None")
+    print("got the file data!: {}Bytes".format(len(data)))
+
+    if not os.path.isdir("./server_files"):
+        os.mkdir("./server_files")
+
+    filename = os.path.join("server_files", path_leaf(args["filename"]))
+
+    print("iv=", client_data["iv"])
+
+    with open(filename, "wb+") as f:
+        plaintext = args["cipherfunc"](
+            data=data, key=args["key"], decrypt=True, iv=client_data["iv"]
+        )
+        f.write(plaintext)
+
+    print("recieved file:", args["filename"])
+
+    if os.path.isfile(filename):
+        subprocess.Popen(r'explorer /select,"{}"'.format(args["filename"]))
+
+
+def ls(conn: socket, args=None):
+    # send list of files
+    filelist = os.listdir("server_files/")
+    filelist_json = json.dumps(filelist)
+    send_msg(conn, _string_to_bytes(filelist_json))

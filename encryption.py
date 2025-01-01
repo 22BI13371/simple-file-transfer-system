@@ -43,6 +43,10 @@ class CipherLib:
         
         chunks = pad_and_slice(data, block_size = 16)
         
+        new_data = b''.join((map(operation, chunks)))
+        
+        return new_data
+        
         
 def pad_and_slice(data: bytes, block_size: int=16) -> list[bytes]:
     # padding for multiple of 16

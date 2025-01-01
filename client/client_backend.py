@@ -16,6 +16,12 @@ from byte_utils import _string_to_bytes, _bytes_to_string
 from utils import send_msg, recv_msg, path_leaf
 from encryption import CipherLib
 
+PORT = 5000
+HOST = socket.gethostbyname(
+    socket.gethostname()
+)  # Get the IP address of the local computer
+ADDR = (HOST, PORT)
+
 # 256 bits = 32 bytes
 # b'faa2a773b80091c287e43deb36b4621dd172309239e99c5922ca9f8bb88253eb'
 DEFAULT_KEY = _bytes_to_string(
@@ -27,16 +33,17 @@ def send_command(args, callback=lambda sock: print("Connected", sock)):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print("send cmd args", args)
         print("Connecting to server...", end="")
-        s.connect((args["host"], args["port"]))
+        s.connect(ADDR)
         print("Connection established")
 
         args["auth"] = False
         args["iv"] = secrets.token_bytes(16)
         request_json = args_to_json(args)
+        # print("client send cmd debug", request_json)
         send_msg(s, _string_to_bytes(request_json))
 
         resp = recv_msg(s)
-        resp_json = json.load(_bytes_to_string(resp))
+        resp_json = json.loads(_bytes_to_string(resp))
         if resp_json["readystate"] in [202]:
             res = callback(s)
 
@@ -46,6 +53,9 @@ def send_command(args, callback=lambda sock: print("Connected", sock)):
 
 
 def args_to_json(args: dict) -> str:
+    if "cipherfunc" not in args:
+        args["cipherfunc"] = CipherLib.none
+
     s_args = deepcopy(args)
     for k, v in s_args.items():
         if isinstance(v, types.FunctionType):
@@ -103,7 +113,10 @@ def get_arg_parser():
     parser.add_argument("-k", "--key", default=DEFAULT_KEY)
 
     subparsers = parser.add_subparsers()
-
+    
+    parser_help = subparsers.add_parser("help", help="Show help and usage")
+    parser_help.set_defaults(function=lambda args: parser.print_help())
+    
     parser_quit = subparsers.add_parser("quit", aliases=["q", "exit"])
     parser_quit.set_defaults(function=quit)
 
@@ -116,6 +129,12 @@ def get_arg_parser():
     parser_put.set_defaults(function=put)
 
     parser_ls = subparsers.add_parser("ls", aliases=[])
+    parser_ls.add_argument(
+        "-l",
+        "--local",
+        action="store_true",
+        help="List client files",
+    )
     parser_ls.set_defaults(function=ls)
 
     # https://docs.python.org/2/library/argparse.html#action-classes
@@ -178,24 +197,67 @@ def get(args: dict):
                 data=resp["data"], key=args["key"], decrypt=True, iv=resp["iv"]
             )
             f.write(plaintxt)
-
             if os.path.isfile(filename):
-                subprocess.Popen(rf"explorer /select, \"{filename}\"")
+                subprocess.Popen(rf'explorer /select,"{filename}"')
 
     return send_command(args, callback)
 
 
-def put():
+def put(args: dict):
+    args["iv"] = secrets.token_bytes(16)
+
+    filename = os.path.join("client_files", path_leaf(args["filename"]))
+
+    if not os.path.isfile(filename):
+        print(f"File {filename} does not exists")
+        return
 
     def callback(conn: socket):
-        conn.sendall()
+        ciphertxt = b""
 
-    return 0
+        with open(filename, "rb") as f:
+            data = f.read()
+            ciphertxt = args["cipherfunc"](data=data, key=args["key"], iv=args["iv"])
+
+        return send_msg(
+            conn,
+            _string_to_bytes(
+                json.dumps(
+                    {
+                        "filename": filename,
+                        "data": _bytes_to_string(ciphertxt),
+                        "iv": _bytes_to_string(args["iv"]),
+                    }
+                )
+            ),
+        )
+
+    return send_command(args, callback)
 
 
-def ls():
+def ls(args: dict):
+    if args["local"] == True:
+        return ls_local()
+    else:
+        return ls_remote(args)
 
-    return 0
+
+def ls_remote(args: dict):
+    def callback(conn: socket):
+        filelist = json.loads(recv_msg(conn))
+        filelist_str = "\n".join([f"{file}" for file in filelist])
+        print("List of server files:\n", filelist_str)
+        return filelist
+
+    return send_command(args, callback)
+
+
+def ls_local():
+    filelist = os.listdir("client_files/")
+    filelist_str = "\n".join([f"{file}" for file in filelist])
+    print("List of client files:\n", filelist_str)
+
+    return filelist
 
 
 def quit(args=None):
