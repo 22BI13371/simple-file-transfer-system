@@ -14,6 +14,9 @@ from byte_utils import _string_to_bytes, _bytes_to_string
 from utils import recv_msg, send_msg, path_leaf
 from encryption import CipherLib
 
+PORT = 5000
+HOST = socket.gethostbyname(socket.gethostname())
+
 # 256 bits = 32 bytes
 # b'faa2a773b80091c287e43deb36b4621dd172309239e99c5922ca9f8bb88253eb'
 DEFAULT_KEY = _bytes_to_string(
@@ -23,8 +26,8 @@ DEFAULT_KEY = _bytes_to_string(
 
 def get_arg_parser():
     parser = argparse.ArgumentParser("Server side")
-    parser.add_argument("--port", default=5000, type=int)
-    parser.add_argument("--host", default="127.0.0.1", type=str)
+    parser.add_argument("--port", default=PORT, type=int)
+    parser.add_argument("--host", default=HOST, type=str)
 
     return parser
 
@@ -134,8 +137,8 @@ def put(conn: socket, args=None):
 
     print("recieved file:", args["filename"])
 
-    if os.path.isfile(filename):
-        subprocess.Popen(r'explorer /select,"{}"'.format(args["filename"]))
+    # if os.path.isfile(filename):
+    #     subprocess.Popen(r'explorer /select,"{}"'.format(args["filename"]))
 
 
 def ls(conn: socket, args=None):

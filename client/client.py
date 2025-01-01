@@ -31,8 +31,8 @@ def authenticate(args, conn = None):
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as conn:
         print("Attempting to connect to the server...", end='')
-        # conn.connect((args['host'], args['port']))
-        conn.connect(ADDR)
+        conn.connect((args['host'], args['port']))
+        # conn.connect(ADDR)
         print("\nServer connected")
 
         # Send client's public key

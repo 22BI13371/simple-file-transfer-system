@@ -37,11 +37,11 @@ def awake():
         i += 1
         sess = {}
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
-            server.bind(ADDR)
+            # server.bind(ADDR)
+            server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            server.bind((args["host"], args["port"]))
             server.listen()
-            server.setsockopt(
-                socket.SOL_SOCKET, socket.SO_REUSEADDR, 1
-            )  # Set to be reusable socket bc there is a TIME_WAIT before you can use the socket again
+            # Set to be reusable socket bc there is a TIME_WAIT before you can use the socket again
             conn, addr = server.accept()
 
             thread = threading.Thread(

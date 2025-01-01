@@ -33,7 +33,8 @@ def send_command(args, callback=lambda sock: print("Connected", sock)):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         print("send cmd args", args)
         print("Connecting to server...", end="")
-        s.connect(ADDR)
+        # s.connect(ADDR)
+        s.connect((args["host"], args["port"]))
         print("Connection established")
 
         args["auth"] = False
@@ -107,16 +108,16 @@ def get_arg_parser():
     """
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--port", default=5000, type=int)
-    parser.add_argument("--host", default="127.0.0.1", type=str)
+    parser.add_argument("--port", default=PORT, type=int)
+    parser.add_argument("--host", default=HOST, type=str)
     parser.add_argument("--auth", default=True, action="store_true")
     parser.add_argument("-k", "--key", default=DEFAULT_KEY)
 
     subparsers = parser.add_subparsers()
-    
+
     parser_help = subparsers.add_parser("help", help="Show help and usage")
     parser_help.set_defaults(function=lambda args: parser.print_help())
-    
+
     parser_quit = subparsers.add_parser("quit", aliases=["q", "exit"])
     parser_quit.set_defaults(function=quit)
 
@@ -197,8 +198,8 @@ def get(args: dict):
                 data=resp["data"], key=args["key"], decrypt=True, iv=resp["iv"]
             )
             f.write(plaintxt)
-            if os.path.isfile(filename):
-                subprocess.Popen(rf'explorer /select,"{filename}"')
+            # if os.path.isfile(filename):
+            #     subprocess.Popen(rf'explorer /select,"{filename}"')
 
     return send_command(args, callback)
 
