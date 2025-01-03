@@ -103,14 +103,12 @@ def main():
 
     args = None
     authed = False
-    i = 0
 
     # client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # client.connect(ADDR)
     # K = authenticate(args)
 
     while True:
-        i += 1
         args = get_user_commands(parser, args)
         print("init args", args)
 

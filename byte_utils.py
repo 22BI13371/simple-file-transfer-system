@@ -48,7 +48,7 @@ def apply_args_map(argsin: dict) -> dict:
 
     for k, arg_type in args["__map"].items():
         if arg_type == "function":
-            args[k] = eval(args[k])
+            #args[k] = eval(args[k])
             pass
         elif arg_type == "bytes":
             args[k] = _string_to_bytes(args[k])
