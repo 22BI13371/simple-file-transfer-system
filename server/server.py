@@ -1,7 +1,6 @@
 import socket
 import threading
 import random
-import struct
 import hashlib
 import os
 import sys
@@ -31,10 +30,8 @@ def awake():
 
     parser = get_arg_parser()
     args = vars(parser.parse_args())
-    i = 0
 
     while True:
-        i += 1
         sess = {}
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
             # server.bind(ADDR)
