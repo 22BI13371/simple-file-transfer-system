@@ -7,13 +7,13 @@ import ntpath
 
 
 def send_msg(sock, msg):
-    # Prefix each message with a 4-byte length (network byte order)
+    """Prefix each message with a 4-byte length (network byte order)"""
     msg = struct.pack(">I", len(msg)) + msg
     sock.sendall(msg)
 
 
 def recv_msg(sock):
-    # Read message length and unpack it into an integer
+    """Read message length and unpack it into an integer"""
     raw_msglen = recvall(sock, 4)
     if not raw_msglen:
         return None
@@ -23,7 +23,7 @@ def recv_msg(sock):
 
 
 def recvall(sock, n):
-    # Helper function to recv n bytes or return None if EOF is hit
+    """Helper function to recv n bytes or return None if EOF is hit"""
     data = b""
     while len(data) < n:
         packet = sock.recv(n - len(data))
@@ -34,6 +34,9 @@ def recvall(sock, n):
 
 
 def path_leaf(path):
+    """
+    get the string after the final slash in the bath
+    """
     head, tail = ntpath.split(path)
 
     return tail or ntpath.basename(head)

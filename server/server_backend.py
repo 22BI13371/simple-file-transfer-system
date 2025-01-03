@@ -33,6 +33,18 @@ def get_arg_parser():
 
 
 def parse_command_json(command_json):
+    """
+    Parameters:
+    ----------
+    command_json: str
+        argument string to be parsed
+
+    Returns:
+    ----------
+    client_args: dict
+        parsed arguments
+    """
+    # initialize to store default arguments
     client_args = {  # extend default
         "auth": True,
         "key": DEFAULT_KEY,
@@ -84,6 +96,20 @@ def receive_command(conn: socket, client_parser=None):
 
 
 def get(conn: socket, args=None):
+    """
+    prepare and send files to client, unencrypted by default
+
+    Parameters
+    ----------
+    conn: socket
+        socket object
+    args: dict
+        client arguments
+
+    Returns:
+    ----------
+    None
+    """
     # sending files to client
 
     iv = secrets.token_bytes(16)
@@ -111,7 +137,20 @@ def get(conn: socket, args=None):
 
 
 def put(conn: socket, args=None):
-    # recv file from client and write to file
+    """
+    recv file from client and write to file
+
+    Parameters
+    ----------
+    conn: socket
+        socket object
+    args: dict
+        client arguments
+
+    Returns:
+    ----------
+    None
+    """
     print("receiving file...")
     client_data = json.loads(_bytes_to_string(recv_msg(conn)))
 
@@ -130,6 +169,7 @@ def put(conn: socket, args=None):
     print("iv=", client_data["iv"])
 
     with open(filename, "wb+") as f:
+        #
         plaintext = args["cipherfunc"](
             data=data, key=args["key"], decrypt=True, iv=client_data["iv"]
         )
@@ -137,12 +177,15 @@ def put(conn: socket, args=None):
 
     print("recieved file:", args["filename"])
 
+    # open received file location in explorer if on windows
     # if os.path.isfile(filename):
     #     subprocess.Popen(r'explorer /select,"{}"'.format(args["filename"]))
 
 
 def ls(conn: socket, args=None):
-    # send list of files
+    """
+    send list of files
+    """
     filelist = os.listdir("server_files/")
     filelist_json = json.dumps(filelist)
     send_msg(conn, _string_to_bytes(filelist_json))

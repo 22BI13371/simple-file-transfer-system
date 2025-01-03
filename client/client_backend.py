@@ -143,18 +143,23 @@ def get_arg_parser():
     class ChooseCypherAction(argparse.Action):
         def __call__(self, parser, namespace, values, *args, **kwargs):
             """
-            :param parser - The ArgumentParser object which contains this action.
 
-            :param namespace - The Namespace object that will be returned by parse_args(). Most actions add an attribute to this object using setattr().
+            Parameters
+            --------
+            parser - The ArgumentParser object which contains this action.
 
-            :param values - The associated command-line arguments, with any type conversions applied. Type conversions are specified with the type keyword argument to add_argument().
+            namespace - The Namespace object that will be returned by parse_args(). Most actions add an attribute to this object using setattr().
 
-            :param option_string - The option string that was used to invoke this action.
+            values - The associated command-line arguments, with any type conversions applied. Type conversions are specified with the type keyword argument to add_argument().
+
+            option_string - The option string that was used to invoke this action.
                 The option_string argument is optional, and will be absent if the action is associated with a positional argument.
 
-            :param args:
-            :param kwargs:
-            :return:
+            args:
+            kwargs:
+
+            Returns
+            --------
             """
             print("action args:")
             setattr(namespace, "cipherfunc", getattr(CipherLib, values))
@@ -182,6 +187,10 @@ def get_arg_parser():
 
 
 def get(args: dict):
+    """
+    Request and process file from the server
+    """
+
     def callback(conn: socket):
         resp = json.loads(_bytes_to_string(recv_msg(conn)))
 
@@ -198,6 +207,8 @@ def get(args: dict):
                 data=resp["data"], key=args["key"], decrypt=True, iv=resp["iv"]
             )
             f.write(plaintxt)
+
+            # Open file location in the explorer on windows
             # if os.path.isfile(filename):
             #     subprocess.Popen(rf'explorer /select,"{filename}"')
 
@@ -205,6 +216,9 @@ def get(args: dict):
 
 
 def put(args: dict):
+    """
+    Prepare and send file to the server
+    """
     args["iv"] = secrets.token_bytes(16)
 
     filename = os.path.join("client_files", path_leaf(args["filename"]))
