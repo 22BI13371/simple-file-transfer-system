@@ -173,11 +173,11 @@ def get_arg_parser():
     parser.add_argument(
         "-c",
         "--cipher",
-        default="none",
+        default="aes",
         choices=ciphers,
         action=ChooseCypherAction,
         help="The encryption/decryption algorithm to use when receiving the file."
-        'Applies to both "put" and "pull". Default: none',
+        'Applies to both "put" and "pull". Default: aes',
     )
 
     return parser
